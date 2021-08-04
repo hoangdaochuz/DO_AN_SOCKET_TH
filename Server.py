@@ -4,8 +4,9 @@ import os
 import requests
 import json
 import pickle
-
-
+import schedule
+import time
+from datetime import date
 # --- functions ---
 
 def dang_ky(conn, addr):
@@ -52,6 +53,23 @@ def dang_nhap(conn, addr):
         else:
             break
 
+def update_json_file():
+    url = 'https://tygia.com/json.php?ran=0&rate=0&gold=1&bank=VIETCOM&date=now'
+    r = requests.get(url)
+    r = r.text.encode("UTF8")
+    data = json.loads(r)
+    file_data = open('data.json', 'wb')
+    file_data.write(r)
+    file_data.close()
+
+def update_json_data_after_30m():
+
+    schedule.every(30).minutes.do(update_json_file)
+    while 1:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 
 def Luu_va_cap_nhat_du_lieu(nam, thang, ngay):
     url = 'https://tygia.com/json.php?ran=0&rate=0&gold=1&bank=VIETCOM&date=' + nam + thang + ngay
@@ -66,7 +84,10 @@ def Luu_va_cap_nhat_du_lieu(nam, thang, ngay):
 
 
 def tra_cuu_implement(nam, thang, ngay, vang):
-    Luu_va_cap_nhat_du_lieu(nam, thang, ngay)
+    today = date.today()
+    if nam+"-"+thang+"-"+ngay == today:
+        Luu_va_cap_nhat_du_lieu(nam, thang, ngay)
+        print("flag")
     f = open('data.json', "r", encoding='utf-8-sig')
     infor = json.load(f)
     for name in infor['golds'][0]['value']:
@@ -132,9 +153,10 @@ s.listen()
 
 all_threads = []
 all_clients = []
-
 try:
     while True:
+        t2 = threading.Thread(target=update_json_data_after_30m, args=())
+        t2.start()
         print('Waiting for client')
         conn, addr = s.accept()
         print(f"{addr} da ket noi den server")
