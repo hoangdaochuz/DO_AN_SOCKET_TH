@@ -9,6 +9,8 @@ import time
 import tkinter as tk
 from datetime import date
 from waiting import wait
+
+
 # --- functions ---
 
 def dang_ky(conn, addr):
@@ -16,7 +18,7 @@ def dang_ky(conn, addr):
     try:
         while True:
             file_read = open('DS_ng_dung.txt', 'r')
-            msg_check=conn.recv(1024).decode("utf8")
+            msg_check = conn.recv(1024).decode("utf8")
             if msg_check == "break":
                 return
             username_recv = conn.recv(1024).decode("utf8")
@@ -69,6 +71,7 @@ def dang_nhap(conn, addr):
         except socket.error:
             return
 
+
 def update_json_file():
     url = 'https://tygia.com/json.php?ran=0&rate=0&gold=1&bank=VIETCOM&date=now'
     r = requests.get(url)
@@ -78,13 +81,12 @@ def update_json_file():
     file_data.write(r)
     file_data.close()
 
-def update_json_data_after_30m():
 
+def update_json_data_after_30m():
     schedule.every(30).minutes.do(update_json_file)
     while 1:
         schedule.run_pending()
         time.sleep(1)
-
 
 
 def Luu_va_cap_nhat_du_lieu(nam, thang, ngay):
@@ -94,27 +96,39 @@ def Luu_va_cap_nhat_du_lieu(nam, thang, ngay):
     print('request thành công')
     r = r.text.encode("UTF8")
     data = json.loads(r)
-    file_data = open('data.json', 'wb')
+    file_data = open('data1.json', 'wb')
     file_data.write(r)
     file_data.close()
+
 
 # Nếu mà tìm kiếm khác ngày hôm nay thì phải ghi dữ liệu vào 1 file khác và request
 
 def tra_cuu_implement(nam, thang, ngay, vang):
     today = date.today()
-    if nam+"-"+thang+"-"+ngay != today:
+    filename = "data.json"
+    if nam + "-" + thang + "-" + ngay != today:
+        filename = "data1.json"
         Luu_va_cap_nhat_du_lieu(nam, thang, ngay)
         print("flag")
-    f = open('data.json', "r", encoding='utf-8-sig')
+    f = open(filename, "r", encoding='utf-8-sig')
     infor = json.load(f)
+    flag = False
     try:
+
         for name in infor['golds'][0]['value']:
             if name['company'] + " " + name['brand'] == vang:
+                flag = True
                 reply = pickle.dumps(name)
                 conn.send(reply)
-        check = {"id": 0}
-        success = pickle.dumps(check)
-        conn.send(success)
+
+        if flag == False:
+            flag_not_success = {"id": -1} # tin nhắn không thành công format json
+            msg_not_success = pickle.dumps(flag_not_success)
+            conn.send(msg_not_success)
+        else:
+            check = {"id": 0}
+            success = pickle.dumps(check)
+            conn.send(success)
         f.close()
         print("Code chay toi day")
         return
@@ -139,15 +153,16 @@ def tra_cuu(conn, addr):
             return
 
 
-
 def client_exit(conn, addr):
     conn.close()
     print(f"{addr} da thoat khoi server")
 
-def is_something_ready(command):
-    if command.ready():
-        return True
-    return False
+
+# def is_something_ready(command):
+#     if command.ready():
+#         return True
+#     return False
+
 
 def handle_client(conn, addr):
     while True:
@@ -155,7 +170,7 @@ def handle_client(conn, addr):
 
         try:
             command = conn.recv(1024).decode("utf8")
-        except :
+        except:
             print(f'{addr} đã thoát 1 cách đột ngột')
             conn.close()
             break
@@ -171,6 +186,7 @@ def handle_client(conn, addr):
         elif command == "exit":
             client_exit(conn, addr)
             break
+
 
 # def off_server():
 #     s.close()
@@ -225,5 +241,3 @@ finally:
         t.join()
     # for conn, addr in all_clients:
     #     conn.close()
-
-
