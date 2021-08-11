@@ -6,9 +6,7 @@ import json
 import pickle
 import schedule
 import time
-import tkinter as tk
-from datetime import date
-from waiting import wait
+from datetime import datetime
 
 
 # --- functions ---
@@ -26,13 +24,11 @@ def dang_ky(conn, addr):
             pass_again_recv = conn.recv(1024).decode("utf8")
             check_exist = username_recv
             success = True
-            print("flag")
             while file_read.tell() != os.fstat(file_read.fileno()).st_size:
                 line = file_read.readline()
                 line_split = line.split(" ")
 
                 if line_split[0] == check_exist or pass_again_recv != password_recv:
-                    print("vô đây")
                     conn.sendall(bytes("Ten dang nhap ton tai", "utf8"))
                     success = False
                     break
@@ -66,7 +62,6 @@ def dang_nhap(conn, addr):
             if success == False:
                 conn.sendall(bytes("Ten dang nhap hoac mat khau khong dung", "utf8"))
             else:
-                print(1)
                 break
         except socket.error:
             return
@@ -104,17 +99,16 @@ def Luu_va_cap_nhat_du_lieu(nam, thang, ngay):
 # Nếu mà tìm kiếm khác ngày hôm nay thì phải ghi dữ liệu vào 1 file khác và request
 
 def tra_cuu_implement(nam, thang, ngay, vang):
-    today = date.today()
+    today = datetime.today()
+    date_search = datetime.strftime(today, "%Y-%m-%d")
     filename = "data.json"
-    if nam + "-" + thang + "-" + ngay != today:
+    if nam + "-" + thang + "-" + ngay != date_search:
         filename = "data1.json"
         Luu_va_cap_nhat_du_lieu(nam, thang, ngay)
-        print("flag")
     f = open(filename, "r", encoding='utf-8-sig')
     infor = json.load(f)
     flag = False
     try:
-
         for name in infor['golds'][0]['value']:
             if name['company'] + " " + name['brand'] == vang:
                 flag = True
@@ -130,7 +124,6 @@ def tra_cuu_implement(nam, thang, ngay, vang):
             success = pickle.dumps(check)
             conn.send(success)
         f.close()
-        print("Code chay toi day")
         return
     except socket.error:
         return
@@ -148,20 +141,12 @@ def tra_cuu(conn, addr):
             msg_vang = conn.recv(1024).decode("utf8")
             tra_cuu_implement(msg_nam, msg_thang, msg_ngay, msg_vang)
         except socket.error:
-            # print(f'{addr} đã thoát khỏi server')
-            # conn.close()
             return
 
 
 def client_exit(conn, addr):
     conn.close()
     print(f"{addr} da thoat khoi server")
-
-
-# def is_something_ready(command):
-#     if command.ready():
-#         return True
-#     return False
 
 
 def handle_client(conn, addr):
@@ -187,35 +172,23 @@ def handle_client(conn, addr):
             client_exit(conn, addr)
             break
 
-
-# def off_server():
-#     s.close()
-#     for t in all_threads:
-#         t.join()
-#     root.destroy()
-
 # --------------------------- main ------------------------------------
 
-
-HOST = ''  # PEP8: spaces around `=`
-PORT = 65432  # PEP8: spaces around `=`
+host_name = socket.gethostname()
+HOST = socket.gethostbyname(host_name)
+print(HOST)
+PORT = 65432
 
 print('Starting ...')
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # PEP8: space after `,`
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
-             1)  # solution for "[Error 89] Address already in use". Use before bind()
+             1)
 s.bind((HOST, PORT))
 s.listen()
 
 all_threads = []
 all_clients = []
-# root = tk.Tk()
-# root.geometry("300x300")
-# root.title("Server is working")
-# butt_off=tk.Button(text="OFF",command=lambda : off_server)
-# butt_off.grid(row=2,column=2)
-# root.mainloop()
 try:
     while True:
         t2 = threading.Thread(target=update_json_data_after_30m, args=())
@@ -224,11 +197,6 @@ try:
         conn, addr = s.accept()
         print(f"{addr} da ket noi den server")
         print(f"Handle client: {addr}")
-
-        # run in current thread - only one client can connect
-        # handle_client(conn, addr)
-        # all_clients.append((conn, addr))
-
         # run in separated thread - many clients can connect
         t = threading.Thread(target=handle_client, args=(conn, addr))
         t.start()
@@ -239,5 +207,5 @@ finally:
     s.close()
     for t in all_threads:
         t.join()
-    # for conn, addr in all_clients:
-    #     conn.close()
+    for conn, addr in all_clients:
+        conn.close()

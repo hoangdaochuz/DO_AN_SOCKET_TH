@@ -5,7 +5,6 @@ from tkinter import *
 import tkinter.messagebox
 import socket
 import pickle
-import select
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -240,11 +239,9 @@ def on_exit():
 # -------------main-----------------
 
 root = tk.Tk()
-# canvas1 = tk.Canvas(root, width=300, height=300)
 root.geometry("300x300")
 root.title("App")
 
-# canvas1.pack()
 entry = tk.Entry()
 entry.grid(row=1, column=1)
 myButton_connect = tk.Button(text="Kết nối", command=ConnectToServer)
@@ -259,4 +256,3 @@ myButton_Exit = tk.Button(text="Thoát", command=on_exit)
 myButton_Exit.grid(row=5, column=1)
 root.protocol("WM_DELETE_WINDOW", lambda: on_exit())
 root.mainloop()
-# Server chưa gửi thông báo ngừng được
