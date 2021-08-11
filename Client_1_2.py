@@ -8,7 +8,6 @@ import pickle
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-
 # -------------func-------------
 
 def ConnectToServer():
@@ -140,7 +139,6 @@ def registration(entry1, entry2, entry3, reg_w):
         reg_w.destroy()
 
     else:
-
         tkinter.messagebox.showerror(title="Lỗi",
                                      message="Tên dăng nhập đã tồn tại hoặc mật khẩu nhập lại không đúng. Hãy thử lại")
         entry1.delete(0, 'end')
@@ -250,8 +248,6 @@ myButton_regis = tk.Button(text="Đăng ký", command=registration_w)
 myButton_regis.grid(row=2, column=1)
 myButton_login = tk.Button(text="Đăng nhập", command=Login_w)
 myButton_login.grid(row=3, column=1)
-myButton_search = tk.Button(text="Tra cứu", command=tra_cuu_w)
-myButton_search.grid(row=4, column=1)
 myButton_Exit = tk.Button(text="Thoát", command=on_exit)
 myButton_Exit.grid(row=5, column=1)
 root.protocol("WM_DELETE_WINDOW", lambda: on_exit())

@@ -7,8 +7,6 @@ import pickle
 import schedule
 import time
 from datetime import datetime
-
-
 # --- functions ---
 
 def dang_ky(conn, addr):
@@ -110,7 +108,7 @@ def tra_cuu_implement(nam, thang, ngay, vang):
     flag = False
     try:
         for name in infor['golds'][0]['value']:
-            if name['company'] + " " + name['brand'] == vang:
+            if name['company'] + " " + name['brand'] == vang or name['brand'] == vang:
                 flag = True
                 reply = pickle.dumps(name)
                 conn.send(reply)
